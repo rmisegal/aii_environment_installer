@@ -63,28 +63,6 @@
 
 ---
 
-## 🎯 Perfect For
-
-### Students
-- Learn AI and machine learning concepts
-- Complete programming assignments
-- Experiment with different AI models
-- Build portfolio projects
-
-### Educators
-- Provide consistent development environment
-- Demonstrate AI concepts in class
-- Assign hands-on AI projects
-- Ensure all students have same tools
-
-### Developers
-- Rapid AI prototyping
-- Local AI model testing
-- Portable development environment
-- Offline AI capabilities
-
----
-
 ## 📋 System Requirements
 
 ### Minimum
