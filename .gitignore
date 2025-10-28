@@ -46,3 +46,6 @@ dist/
 
 # Claude Code local files
 .claude/
+
+# Legacy system files (local archive only)
+legacy_install_system/
