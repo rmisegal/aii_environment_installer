@@ -17,7 +17,8 @@
 3. **Choose installation type** - Fresh installation, AI_Lab only, or AI_Environment only
 4. **Select drive** - Installer will show available drives and recommend the best option
 5. **Wait** for installation to complete (30-60 minutes)
-6. **Start** using your AI environment!
+6. **(Optional)** Run `validate.bat` to verify all components are working
+7. **Start** using your AI environment!
 
 ---
 
@@ -103,14 +104,15 @@ After installation, your drive will contain:
 Installer Directory:
 ```
 AI_Environment_Installer-main\
-├── MasterInstall.bat        # Main unified installer (NEW)
-├── MasterUninstall.bat      # Main unified uninstaller (NEW)
+├── MasterInstall.bat        # Main unified installer
+├── MasterUninstall.bat      # Main unified uninstaller
+├── validate.bat             # Installation validator
 ├── README.md                # This file
 ├── master_installation_status.json  # Unified status tracking
 ├── src\                     # Source code
-│   ├── master_installer.py  # Main orchestration (NEW)
-│   ├── installation_status_manager.py  # Status management (NEW)
-│   ├── ai_lab_installer.py  # AI_Lab repository cloning (NEW)
+│   ├── master_installer.py  # Main orchestration
+│   ├── installation_status_manager.py  # Status management
+│   ├── ai_lab_installer.py  # AI_Lab repository cloning
 │   ├── install_manager.py   # AI_Environment installation
 │   ├── automated_uninstaller.py  # Smart uninstaller
 │   ├── drive_selector.py    # Drive selection interface
@@ -118,15 +120,12 @@ AI_Environment_Installer-main\
 │   ├── vscode_installer.py  # VS Code installation
 │   ├── ollama_installer.py  # Ollama installation
 │   └── [other modules...]   # Additional utilities
+├── validator\               # Validation framework
+│   └── system_validator.py  # Comprehensive validation tests
 ├── config\                  # Configuration files
 │   └── install_config.json  # Installation settings
 ├── docs\                    # Documentation
-├── logs\                    # Installation logs
-└── legacy_install_system\   # Deprecated files from v1.x-2.x
-    ├── batch_files\         # Old install.bat, uninstall.bat
-    ├── status_files\        # Old status JSON files
-    ├── documentation\       # Development phase docs
-    └── README_LEGACY.md     # Legacy system documentation
+└── logs\                    # Installation logs
 ```
 
 ---
@@ -351,6 +350,35 @@ The status display shows:
 - Last completed steps
 - Resume options if installation is incomplete
 
+### Validate Installation
+
+After installation completes, you can run comprehensive validation tests:
+
+**Run the validator:**
+```batch
+# Right-click validate.bat and select "Run as administrator"
+# Or run from command line:
+validate.bat
+```
+
+**What it tests:**
+- ✓ Python environment (AI2025 conda environment)
+- ✓ VS Code portable installation
+- ✓ Ollama server and AI models
+- ✓ All Python packages (30+ AI/ML libraries)
+- ✓ Component integration and functionality
+
+**How it works:**
+1. Automatically detects your AI_Environment installation
+2. Reads from `master_installation_status.json` or searches all drives
+3. Runs comprehensive tests on all components
+4. Generates a validation report: `AI_Environment\validation_report.json`
+5. Shows pass/fail results for each component
+
+The validator supports both installation modes:
+- External drive: `F:\AI_Lab\AI_Environment`
+- Internal drive: `D:\AI_Environment`
+
 ---
 
 ## 🚨 Troubleshooting
@@ -546,6 +574,9 @@ After successful installation, you should be able to:
 ```batch
 # Install
 MasterInstall.bat
+
+# Validate installation
+validate.bat
 
 # Uninstall
 MasterUninstall.bat
