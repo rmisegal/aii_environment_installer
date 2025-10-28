@@ -1,0 +1,48 @@
+# Downloads folder (installers and binaries)
+downloads/
+
+# Log files
+logs/
+*.log
+
+# Python cache
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+
+# Virtual environments
+venv/
+ENV/
+env/
+
+# IDE and editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS files
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Temporary files
+*.tmp
+*.temp
+*.bak
+
+# Build artifacts
+build/
+dist/
+*.egg-info/
+
+# Configuration files with sensitive data (if any)
+*.secret
+*.key
+.env
+
+# Claude Code local files
+.claude/

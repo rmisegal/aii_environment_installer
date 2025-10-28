@@ -1,0 +1,212 @@
+{
+  "testing_phase": "Phase 2 Integration - Complete System Testing",
+  "test_date": "2025-10-16",
+  "test_location": "C:\\ClaudeScript\\AI_Environment_Installer-main",
+
+  "test_suite_overview": {
+    "total_tests": 6,
+    "estimated_time": "45-60 minutes",
+    "prerequisites": [
+      "Git installed and working",
+      "Python 3.8+ installed",
+      "At least one drive with 10GB+ free space",
+      "USB drive (optional, for External drive testing)"
+    ]
+  },
+
+  "test_1_uninstaller_list_mode": {
+    "priority": "HIGH",
+    "estimated_time": "2-3 minutes",
+    "description": "Test uninstaller detection without actually removing anything",
+    "command": "python src\\automated_uninstaller.py --list",
+    "expected_results": [
+      "Should detect existing F:\\ installation (AI_Environment + AI_Lab)",
+      "Should show installation type",
+      "Should show both component paths",
+      "Should not prompt for deletion"
+    ],
+    "success_criteria": "Lists all installations correctly without errors"
+  },
+
+  "test_2_uninstaller_dry_run": {
+    "priority": "HIGH",
+    "estimated_time": "3-5 minutes",
+    "description": "Test uninstaller plan creation without actually removing anything",
+    "command": "python src\\automated_uninstaller.py --dry-run",
+    "expected_results": [
+      "Should detect installations",
+      "Should create removal plan",
+      "Should list items to remove",
+      "Should list items to preserve",
+      "Should NOT actually delete anything"
+    ],
+    "success_criteria": "Shows correct removal plan without executing it"
+  },
+
+  "test_3_fresh_install_internal": {
+    "priority": "HIGH",
+    "estimated_time": "15-20 minutes",
+    "description": "Full fresh installation to Internal drive (C:\\ or D:\\)",
+    "steps": [
+      "1. Run MasterInstall.bat",
+      "2. Choose option 1 (Fresh Installation)",
+      "3. Select Internal drive (C:\\ or D:\\)",
+      "4. Confirm installation plan",
+      "5. Wait for completion"
+    ],
+    "expected_behavior": {
+      "installation_order": [
+        "Phase 1: Drive Selection",
+        "Phase 2: Install AI_Environment (at root)",
+        "Phase 3: Install AI_Lab (at root)"
+      ],
+      "final_structure": [
+        "Drive:\\AI_Environment\\",
+        "Drive:\\AI_Lab\\"
+      ],
+      "installation_type": "Standard (Internal Drive)",
+      "status_file": "master_installation_status.json should show both components completed"
+    },
+    "success_criteria": "Both components installed successfully at root level (side-by-side)",
+    "skip_if": "No available Internal drive with 10GB+ free space"
+  },
+
+  "test_4_uninstall_internal": {
+    "priority": "HIGH",
+    "estimated_time": "5-10 minutes",
+    "description": "Test uninstaller on Internal drive side-by-side installation",
+    "prerequisites": "Test 3 must be completed successfully",
+    "steps": [
+      "1. Run MasterUninstall.bat",
+      "2. Review detected installations",
+      "3. Select installation to remove",
+      "4. Confirm deletion",
+      "5. Verify removal"
+    ],
+    "expected_behavior": {
+      "detection": "Should detect both AI_Environment and AI_Lab at root",
+      "removal_order": "Both removed independently (order doesn't matter)",
+      "final_state": [
+        "Drive:\\AI_Environment\\ should be removed",
+        "Drive:\\AI_Lab\\ should be removed",
+        "master_installation_status.json should be updated"
+      ]
+    },
+    "success_criteria": "Both components removed cleanly, no leftover directories"
+  },
+
+  "test_5_fresh_install_external": {
+    "priority": "MEDIUM",
+    "estimated_time": "15-20 minutes",
+    "description": "Full fresh installation to External drive (USB)",
+    "prerequisites": "External USB drive available",
+    "steps": [
+      "1. Plug in USB drive (note drive letter)",
+      "2. Run MasterInstall.bat",
+      "3. Choose option 1 (Fresh Installation)",
+      "4. Select External drive (E:\\, F:\\, etc.)",
+      "5. Confirm installation plan",
+      "6. Wait for completion"
+    ],
+    "expected_behavior": {
+      "installation_order": [
+        "Phase 1: Drive Selection",
+        "Phase 2: Install AI_Lab (at root)",
+        "Phase 3: Install AI_Environment (inside AI_Lab)"
+      ],
+      "final_structure": [
+        "Drive:\\AI_Lab\\",
+        "Drive:\\AI_Lab\\AI_Environment\\"
+      ],
+      "installation_type": "Portable (External Drive)",
+      "status_file": "master_installation_status.json should show nested structure"
+    },
+    "success_criteria": "AI_Environment installed inside AI_Lab (nested structure)",
+    "skip_if": "No USB drive available"
+  },
+
+  "test_6_uninstall_external_nested": {
+    "priority": "MEDIUM",
+    "estimated_time": "5-10 minutes",
+    "description": "Test uninstaller on External drive nested installation",
+    "prerequisites": "Test 5 must be completed successfully",
+    "steps": [
+      "1. Run MasterUninstall.bat",
+      "2. Review detected installations",
+      "3. Select installation to remove",
+      "4. Confirm deletion",
+      "5. Verify removal"
+    ],
+    "expected_behavior": {
+      "detection": "Should detect nested installation (AI_Environment inside AI_Lab)",
+      "removal_order": [
+        "1. Remove AI_Environment first",
+        "2. Remove AI_Lab parent directory"
+      ],
+      "final_state": [
+        "Drive:\\AI_Lab\\ should be completely removed",
+        "No leftover directories or files"
+      ]
+    },
+    "success_criteria": "Nested structure removed cleanly in correct order"
+  },
+
+  "test_7_resume_functionality": {
+    "priority": "MEDIUM",
+    "estimated_time": "10-15 minutes",
+    "description": "Test resume functionality with interrupted installation",
+    "prerequisites": "Previous installations cleaned up",
+    "steps": [
+      "1. Run MasterInstall.bat",
+      "2. Choose option 1 (Fresh Installation)",
+      "3. Select drive and confirm",
+      "4. During AI_Environment installation, press Ctrl+C to interrupt",
+      "5. Run MasterInstall.bat again",
+      "6. Choose option 4 (Resume incomplete installation)",
+      "7. Wait for completion"
+    ],
+    "expected_behavior": {
+      "interruption": "Installation should be marked as 'processing' in status",
+      "detection": "Menu option 4 should be available and functional",
+      "resume": "Should continue from last completed step",
+      "completion": "Should complete successfully"
+    },
+    "success_criteria": "Installation resumes and completes successfully",
+    "notes": "This test requires manual interruption - may need multiple attempts"
+  },
+
+  "recommended_test_order": [
+    "Test 1: Uninstaller List Mode (safe, non-destructive)",
+    "Test 2: Uninstaller Dry Run (safe, non-destructive)",
+    "Test 3: Fresh Install Internal (creates side-by-side installation)",
+    "Test 4: Uninstall Internal (tests side-by-side removal)",
+    "Test 5: Fresh Install External (creates nested installation) [if USB available]",
+    "Test 6: Uninstall External (tests nested removal) [if USB available]",
+    "Test 7: Resume Functionality (advanced test)"
+  ],
+
+  "quick_test_sequence": {
+    "description": "Minimal testing for quick verification",
+    "tests": [
+      "Test 1: List Mode",
+      "Test 2: Dry Run",
+      "Test 3: Fresh Install Internal",
+      "Test 4: Uninstall Internal"
+    ],
+    "estimated_time": "25-35 minutes"
+  },
+
+  "comprehensive_test_sequence": {
+    "description": "Full testing of all functionality",
+    "tests": [
+      "Test 1",
+      "Test 2",
+      "Test 3",
+      "Test 4",
+      "Test 5",
+      "Test 6",
+      "Test 7"
+    ],
+    "estimated_time": "50-70 minutes"
+  }
+}

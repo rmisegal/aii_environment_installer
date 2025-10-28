@@ -1,0 +1,197 @@
+{
+  "test_plan": "MasterInstall Testing Protocol",
+  "prerequisites": {
+    "git_installation": {
+      "required": true,
+      "download_url": "https://git-scm.com/download/win",
+      "verify_command": "git --version",
+      "expected_output": "git version 2.x.x"
+    },
+    "python_installation": {
+      "required": true,
+      "verify_command": "python --version",
+      "expected_output": "Python 3.x.x"
+    },
+    "admin_privileges": {
+      "required": false,
+      "note": "Not required for testing, warning can be ignored"
+    }
+  },
+
+  "test_sequence": [
+    {
+      "test_number": 1,
+      "name": "Basic Launch & Menu",
+      "status": "PENDING",
+      "risk_level": "SAFE",
+      "makes_changes": false,
+      "steps": [
+        "Open regular Command Prompt (no admin needed)",
+        "cd C:\\ClaudeScript\\AI_Environment_Installer-main",
+        "Run: MasterInstall.bat",
+        "Press any key when admin warning appears",
+        "Observe system requirements check",
+        "Observe current status display",
+        "Observe main menu",
+        "Choose option 0 (Exit)"
+      ],
+      "expected_results": [
+        "Banner shows 'AI Environment & Lab Master Installer Version 3.0.28'",
+        "Git detection shows version",
+        "Python detection shows version (or warning about portable version)",
+        "Status shows 'No Installation' for both AI_Environment and AI_Lab",
+        "Menu displays options 0-5",
+        "Option 0 exits cleanly"
+      ],
+      "what_to_report": [
+        "Did MasterInstall.bat launch successfully?",
+        "Did it detect Git? (version shown)",
+        "Did the status display correctly?",
+        "Did the menu work?",
+        "Any errors or warnings?"
+      ]
+    },
+    {
+      "test_number": 2,
+      "name": "Status Manager Direct Test",
+      "status": "PENDING",
+      "risk_level": "SAFE",
+      "makes_changes": true,
+      "changes_description": "Creates master_installation_status.json file only",
+      "steps": [
+        "cd C:\\ClaudeScript\\AI_Environment_Installer-main\\src",
+        "python installation_status_manager.py"
+      ],
+      "expected_results": [
+        "Creates master_installation_status.json in parent directory",
+        "Shows 'Current Installation Status' with No Installation",
+        "Shows 'Testing status updates...'",
+        "Updates status to Processing",
+        "Shows Installation Context",
+        "Displays Resume Information JSON"
+      ],
+      "verification": [
+        "Check file exists: C:\\ClaudeScript\\AI_Environment_Installer-main\\master_installation_status.json",
+        "File contains valid JSON with ai_environment and ai_lab sections"
+      ],
+      "cleanup": [
+        "Optional: Delete master_installation_status.json after test"
+      ]
+    },
+    {
+      "test_number": 3,
+      "name": "AI_Lab Installer Help",
+      "status": "PENDING",
+      "risk_level": "SAFE",
+      "makes_changes": false,
+      "steps": [
+        "cd C:\\ClaudeScript\\AI_Environment_Installer-main\\src",
+        "python ai_lab_installer.py --help"
+      ],
+      "expected_results": [
+        "Shows usage message",
+        "Shows positional argument: target_path",
+        "Shows optional argument: --force"
+      ]
+    },
+    {
+      "test_number": 4,
+      "name": "Full Menu Navigation",
+      "status": "PENDING",
+      "risk_level": "SAFE",
+      "makes_changes": false,
+      "note": "Will cancel before any actual installation",
+      "steps": [
+        "cd C:\\ClaudeScript\\AI_Environment_Installer-main",
+        "MasterInstall.bat",
+        "Choose option 1 (Fresh Installation)",
+        "Observe drive selector running",
+        "Observe drives listed with [Internal] or [External] tags",
+        "Observe AI_Lab folder detection (if applicable)",
+        "Press Ctrl+C to cancel before confirming"
+      ],
+      "expected_results": [
+        "Drive selector displays all available drives",
+        "Correctly identifies External (USB) vs Internal drives",
+        "Detects existing AI_Lab folder on F:\\ (if present)",
+        "Shows drive recommendations",
+        "Allows cancellation with Ctrl+C"
+      ],
+      "what_to_check": [
+        "Drive detection accuracy",
+        "USB detection correctness",
+        "AI_Lab folder detection",
+        "User-friendly display"
+      ]
+    },
+    {
+      "test_number": 5,
+      "name": "AI_Lab Clone to Temp Location",
+      "status": "PENDING",
+      "risk_level": "SAFE",
+      "makes_changes": true,
+      "changes_description": "Clones repository to temporary location, can be safely deleted",
+      "optional": true,
+      "note": "Only if you want to verify GitHub cloning works",
+      "steps": [
+        "cd C:\\ClaudeScript\\AI_Environment_Installer-main\\src",
+        "python ai_lab_installer.py \"C:\\Users\\Guest1\\AppData\\Local\\Temp\\test_ai_lab\""
+      ],
+      "expected_results": [
+        "Checks Git availability",
+        "Shows 'Cloning AI_Lab repository...'",
+        "Clones from https://github.com/rmisegal/AILab.git",
+        "Shows progress messages",
+        "Verifies repository structure",
+        "Shows '✓ Found: activate_ai_env.py'",
+        "Shows '✓ Found: run_ai_env.bat'",
+        "Shows '✓ Found: src'",
+        "Shows '✓ src directory contains X Python modules'",
+        "Shows '✓ AI_Lab installation completed successfully'"
+      ],
+      "duration": "1-2 minutes (network dependent)",
+      "cleanup": [
+        "rmdir /s /q \"C:\\Users\\Guest1\\AppData\\Local\\Temp\\test_ai_lab\""
+      ],
+      "verification": [
+        "Check directory created",
+        "Check .git folder exists",
+        "Check critical files present"
+      ]
+    }
+  ],
+
+  "post_git_installation_checklist": [
+    "Verify Git installed: git --version",
+    "Restart Command Prompt to refresh PATH",
+    "Run Test 1: Basic Launch & Menu",
+    "Run Test 2: Status Manager",
+    "Run Test 3: AI_Lab Help",
+    "Run Test 4: Menu Navigation (optional, can skip)",
+    "Run Test 5: Temp Clone (optional, validates actual cloning)"
+  ],
+
+  "safe_to_run": {
+    "all_tests": "Yes - designed to be non-destructive",
+    "can_cancel_anytime": true,
+    "requires_cleanup": "Only Test 2 and Test 5 (optional)",
+    "affects_production": false,
+    "note": "All tests run in C:\\ClaudeScript copy, not production installer"
+  },
+
+  "what_to_report_back": {
+    "for_each_test": [
+      "Test number and name",
+      "Status: PASS or FAIL",
+      "Any error messages (exact text)",
+      "Screenshots if helpful",
+      "Unexpected behavior"
+    ],
+    "overall": [
+      "Which tests passed",
+      "Which tests failed",
+      "Any installation blockers discovered",
+      "Ready to proceed to next phase?"
+    ]
+  }
+}

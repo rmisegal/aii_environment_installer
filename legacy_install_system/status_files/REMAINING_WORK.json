@@ -1,0 +1,243 @@
+{
+  "remaining_implementation": "Tasks After Testing Phase",
+
+  "phase_2_integration": {
+    "description": "Integrate master status manager with existing install_manager.py",
+    "priority": "HIGH",
+    "estimated_effort": "30-45 minutes",
+
+    "task_1_update_install_manager": {
+      "file": "src/install_manager.py",
+      "changes": [
+        {
+          "line_area": "Top of file (imports)",
+          "change": "Add: from installation_status_manager import InstallationStatusManager",
+          "reason": "Need to use unified status tracking"
+        },
+        {
+          "line_area": "__init__ method",
+          "change": "Initialize: self.status_manager = InstallationStatusManager()",
+          "reason": "Create status manager instance"
+        },
+        {
+          "line_area": "After each installation step (Steps 1-8)",
+          "change": "Add: self.status_manager.set_ai_environment_status(STATUS_PROCESSING, last_step=step_number)",
+          "reason": "Track progress for resume capability"
+        },
+        {
+          "line_area": "On successful completion (end of run_installation)",
+          "change": "Add: self.status_manager.set_ai_environment_status(STATUS_COMPLETED, version='3.0.28', last_step=8)",
+          "reason": "Mark installation as complete"
+        },
+        {
+          "line_area": "On error/failure",
+          "change": "Keep status as PROCESSING with last_step set to last successful step",
+          "reason": "Allow resume from failure point"
+        }
+      ],
+      "testing": "Run install_manager.py directly, check master_installation_status.json updates"
+    },
+
+    "task_2_extend_uninstaller": {
+      "file": "src/automated_uninstaller.py",
+      "changes": [
+        {
+          "section": "scan_drives_for_installations method",
+          "change": "Already detects both AI_Lab\\AI_Environment and Drive:\\AI_Environment",
+          "status": "Already implemented in current version"
+        },
+        {
+          "section": "Add AI_Lab removal",
+          "change": "Add method: remove_ai_lab(self, ai_lab_path) - removes entire AI_Lab directory including .git",
+          "reason": "Support uninstalling AI_Lab component"
+        },
+        {
+          "section": "uninstall method",
+          "change": "Add parameter: remove_ai_lab=True/False",
+          "reason": "Allow selective uninstallation"
+        },
+        {
+          "section": "Add status manager integration",
+          "change": "Update status to UNINSTALL_PROCESSING during uninstall, NO_INSTALLATION when done",
+          "reason": "Track uninstallation state"
+        }
+      ],
+      "new_methods_needed": [
+        "remove_ai_lab(ai_lab_path) - Deletes entire AI_Lab directory",
+        "get_uninstall_options() - Returns what can be uninstalled based on status",
+        "uninstall_component(component_name) - Uninstall specific component"
+      ]
+    },
+
+    "task_3_create_master_uninstall": {
+      "file": "MasterUninstall.bat",
+      "content_structure": [
+        "Similar to MasterInstall.bat",
+        "Calls Python script: master_uninstaller.py",
+        "Shows warning before deletion",
+        "Requires user confirmation"
+      ],
+      "also_create": "src/master_uninstaller.py",
+      "features": [
+        "Read current installation status",
+        "Show what's installed",
+        "Offer options: Both, AI_Environment only, AI_Lab only",
+        "Require confirmation (type 'UNINSTALL')",
+        "Call automated_uninstaller.py with appropriate parameters",
+        "Update status manager"
+      ]
+    },
+
+    "task_4_implement_resume": {
+      "locations": [
+        "master_installer.py - Menu option 4"
+      ],
+      "logic": [
+        "Check resume_info from status_manager",
+        "If must_complete_uninstall: force user to run uninstaller first",
+        "If ai_lab_resume: offer to continue or restart AI_Lab",
+        "If ai_environment_resume: offer to continue from last_step or restart",
+        "Call appropriate installer with resume parameters"
+      ]
+    },
+
+    "task_5_component_only_install": {
+      "ai_lab_only": {
+        "menu_option": "2",
+        "prerequisites": "AI_Environment must be already installed",
+        "logic": [
+          "Verify AI_Environment exists and is completed",
+          "Run drive selector or use existing AI_Environment location",
+          "Clone AI_Lab to appropriate location",
+          "Validate AI_Lab can find AI_Environment"
+        ]
+      },
+      "ai_environment_only": {
+        "menu_option": "3",
+        "use_case": "User wants runtime without source code",
+        "logic": [
+          "Run drive selector",
+          "Install AI_Environment normally",
+          "Skip AI_Lab installation",
+          "Note: run_ai_env.bat won't exist without AI_Lab"
+        ]
+      }
+    }
+  },
+
+  "phase_3_testing": {
+    "description": "End-to-end testing after integration complete",
+
+    "test_scenarios": [
+      {
+        "scenario": "Fresh install - External drive with existing AI_Lab folder",
+        "steps": [
+          "Have AI_Lab folder on F:\\",
+          "Run MasterInstall.bat",
+          "Choose option 1",
+          "Select F:\\ drive",
+          "Should install to F:\\AI_Lab and F:\\AI_Lab\\AI_Environment"
+        ],
+        "expected": "Both components installed in AI_Lab folder"
+      },
+      {
+        "scenario": "Fresh install - External drive without AI_Lab folder",
+        "steps": [
+          "Use external drive without AI_Lab folder",
+          "Run MasterInstall.bat",
+          "Choose option 1",
+          "Select external drive"
+        ],
+        "expected": "Creates AI_Lab folder, installs both components"
+      },
+      {
+        "scenario": "Fresh install - Internal drive",
+        "steps": [
+          "Run MasterInstall.bat",
+          "Choose option 1",
+          "Select internal drive (e.g., D:\\)"
+        ],
+        "expected": "Creates D:\\AI_Lab and D:\\AI_Environment separately"
+      },
+      {
+        "scenario": "Resume after AI_Lab interruption",
+        "steps": [
+          "Start fresh install",
+          "Ctrl+C during git clone",
+          "Run MasterInstall.bat again",
+          "Choose option 4 (Resume)"
+        ],
+        "expected": "Detects partial AI_Lab, offers to continue or restart"
+      },
+      {
+        "scenario": "Resume after AI_Environment interruption",
+        "steps": [
+          "Start fresh install",
+          "Let AI_Lab complete",
+          "Ctrl+C during AI_Environment install (e.g., step 3)",
+          "Run MasterInstall.bat again",
+          "Choose option 4 (Resume)"
+        ],
+        "expected": "Offers to resume from step 4"
+      },
+      {
+        "scenario": "Uninstall both components",
+        "steps": [
+          "Complete fresh install",
+          "Run MasterUninstall.bat",
+          "Choose option 1 (Both)",
+          "Type 'UNINSTALL' to confirm"
+        ],
+        "expected": "Removes both AI_Lab and AI_Environment, resets status"
+      },
+      {
+        "scenario": "Uninstall AI_Environment only",
+        "steps": [
+          "Complete fresh install",
+          "Run MasterUninstall.bat",
+          "Choose option 2 (AI_Environment only)"
+        ],
+        "expected": "Removes AI_Environment, keeps AI_Lab"
+      },
+      {
+        "scenario": "AI_Lab only install",
+        "steps": [
+          "Have AI_Environment already installed",
+          "Run MasterInstall.bat",
+          "Choose option 2 (AI_Lab only)"
+        ],
+        "expected": "Clones AI_Lab, verifies it can find AI_Environment"
+      }
+    ]
+  },
+
+  "phase_4_deployment": {
+    "description": "Copy completed system back to production",
+    "steps": [
+      "Verify all tests pass in C:\\ClaudeScript copy",
+      "Copy all files back to C:\\AI_Environment_Installer-main",
+      "Create backup of original install.bat and uninstall.bat",
+      "Test in production location",
+      "Update documentation"
+    ]
+  },
+
+  "timeline_estimate": {
+    "testing_phase_1": "30 minutes (waiting on Git installation)",
+    "phase_2_integration": "1-2 hours",
+    "phase_3_testing": "1-2 hours",
+    "phase_4_deployment": "30 minutes",
+    "total": "3-5 hours"
+  },
+
+  "blockers": {
+    "current": [
+      "Git not installed (user installing now)"
+    ],
+    "potential": [
+      "Network issues during git clone testing",
+      "Permission issues if testing on protected drives",
+      "Integration issues with existing install_manager.py"
+    ]
+  }
+}

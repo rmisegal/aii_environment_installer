@@ -1,0 +1,423 @@
+# AI Environment Installer - Software Definition Document
+**Version:** 1.3  
+**Last Updated:** August 11, 2025  
+**Target Platform:** Windows 11  
+**Installation Drive:** D: (Portable USB Drive)
+
+## 1. INSTALLATION SOFTWARE
+
+### 1.1 Main Installer
+
+#### install.bat
+**Purpose:** Main entry point for the AI Environment installation process  
+**Location:** `/AI_Installer/install.bat`
+
+**Inputs:**
+- Command line parameters:
+  - `--step N` : Start installation from step N (1-8)
+  - `--status` : Show current installation status
+  - `--help` : Display help information
+
+**Operations:**
+1. Checks administrator privileges
+2. Verifies D: drive availability and disk space (50GB minimum)
+3. Parses command line arguments
+4. Calls Python installation manager with appropriate parameters
+5. Displays installation progress and results
+
+**Outputs:**
+- Installation success/failure status
+- AI Environment installed on D: drive
+- Exit code (0 for success, 1 for failure)
+
+#### install_manager.py (Version 1.3)
+**Purpose:** Core installation orchestrator with conda-based environment management  
+**Location:** `/AI_Installer/src/install_manager.py`
+
+**Key Features:**
+- Step parameter support (`--step N`) for resumable installation
+- Conda-based installation (replaced venv approach)
+- Integration with StepTracker for progress monitoring
+- Automatic verification prompt after successful installation
+- Proper method calls: `fail_step()`, `complete_step()`, `complete_installation()`
+- Windows-compatible disk space checking using `shutil.disk_usage()`
+- Validation subprocess isolation to prevent exit code conflicts
+
+**Installation Steps:**
+1. Check prerequisites (system requirements, disk space, internet)
+2. Create directory structure
+3. Install Miniconda
+4. Create AI2025 conda environment
+5. Install VS Code with extensions
+6. Install Python packages (33 AI/ML libraries)
+7. Install Ollama and download LLM models
+8. Finalize installation (activation scripts, project templates)
+
+**Outputs:**
+- Complete AI Environment on D: drive
+- Installation status file (`installation_status.json`)
+- Installation logs in `/logs/` directory
+
+### 1.2 Component Installers
+
+#### conda_installer.py
+**Purpose:** Handles Miniconda download and installation  
+**Location:** `/AI_Installer/src/conda_installer.py`
+
+**Features:**
+- Downloads Miniconda installer from official repository
+- Multiple installation methods (silent, interactive, manual fallback)
+- Automatic Terms of Service acceptance
+- Conda initialization for cmd.exe
+- Channel configuration (conda-forge, defaults)
+
+**Outputs:**
+- Miniconda installed at `D:\AI_Environment\Miniconda`
+- Configured conda with accepted TOS
+- Initialized for command prompt usage
+
+#### conda_manager.py
+**Purpose:** Manages conda environments and package installation  
+**Location:** `/AI_Installer/src/conda_manager.py`
+
+**Features:**
+- Creates AI2025 environment with Python 3.10
+- Smart package installation (conda with pip fallback)
+- PIP_ONLY_PACKAGES list for packages requiring pip installation:
+  - torch, torchvision, torchaudio
+  - transformers, sentence-transformers
+  - pandas, numpy, scikit-learn
+  - matplotlib, seaborn, plotly
+- Package name corrections (e.g., langraph → langgraph)
+- Dynamic timeout assignment based on package size
+- Batch package installation with 80% success threshold
+
+**Outputs:**
+- AI2025 conda environment at `D:\AI_Environment\Miniconda\envs\AI2025`
+- 33+ installed AI/ML packages
+- Activation script for environment
+
+#### vscode_installer.py
+**Purpose:** Installs portable VS Code with AI extensions  
+**Location:** `/AI_Installer/src/vscode_installer.py`
+
+**Features:**
+- Downloads VS Code portable edition
+- Automatic extension installation without GUI:
+  - ms-python.python
+  - ms-toolsai.jupyter
+  - ms-python.vscode-pylance
+  - ms-python.black-formatter
+  - ms-vscode.vscode-json
+- Process monitoring to prevent VS Code GUI opening
+- Python integration configuration
+- Workspace settings for Projects directory
+
+**Outputs:**
+- Portable VS Code at `D:\AI_Environment\VSCode`
+- Configured extensions and settings
+- Python interpreter integration with AI2025
+
+#### ollama_installer.py
+**Purpose:** Installs Ollama server and downloads LLM models  
+**Location:** `/AI_Installer/src/ollama_installer.py`
+
+**Features:**
+- Downloads Ollama from GitHub releases
+- Corrected download path to D: drive (`ai_env_path / "downloads"`)
+- Windows encoding fixes for model downloads
+- Model download with UTF-8 encoding and error handling
+- Service startup scripts creation
+- Configured models:
+  - llama2:7b
+  - codellama:7b
+  - mistral:7b
+  - phi:2.7b
+  - gpt-oss:20b (added in latest version)
+
+**Outputs:**
+- Ollama server at `D:\AI_Environment\Ollama`
+- Downloaded models in `D:\AI_Environment\Models`
+- Service management scripts
+
+### 1.3 Supporting Modules
+
+#### download_manager.py
+**Purpose:** Handles file downloads with progress tracking  
+**Location:** `/AI_Installer/src/download_manager.py`
+
+**Features:**
+- Resumable downloads with progress tracking
+- Checksum verification for integrity
+- Progress bar display
+- Retry logic for failed downloads
+- Support for all major components
+
+#### step_tracker.py
+**Purpose:** Tracks installation progress for resume functionality  
+**Location:** `/AI_Installer/src/step_tracker.py`
+
+**Features:**
+- 8-step installation tracking
+- Status persistence in `installation_status.json`
+- Methods: `start_step()`, `complete_step()`, `fail_step()`, `complete_installation()`
+- Resume capability from failed steps
+- Status validation with missing key handling
+- Installation summary generation
+
+**Status Structure:**
+```json
+{
+  "current_step": N,
+  "completed_steps": [],
+  "failed_steps": [],
+  "step_details": {},
+  "installation_id": "timestamp",
+  "resume_available": boolean
+}
+```
+
+## 2. TESTING SOFTWARE
+
+### 2.1 Validation System
+
+#### validate.bat
+**Purpose:** Launches comprehensive environment validation  
+**Location:** `/AI_Installer/validate.bat`
+
+**Features:**
+- Administrator privilege checking
+- Conda environment path verification
+- Python executable validation from `D:\AI_Environment\Miniconda\envs\AI2025\python.exe`
+- Calls system_validator.py with proper paths
+
+#### system_validator.py (Version 2.1.0)
+**Purpose:** Comprehensive AI environment validation  
+**Location:** `/AI_Installer/validator/system_validator.py`
+
+**Version Info:**
+- Version: 2.1.0
+- Date: 2025-08-11
+- Description: "Fixed for Conda Environment"
+
+**Test Categories (134 total tests):**
+1. System Requirements (disk space, RAM verification)
+2. Directory Structure (conda paths validation)
+3. Python Installation (conda environment checks)
+4. Conda Environment validation
+5. Python Packages (import testing for critical packages)
+6. VS Code Installation
+7. Ollama Installation
+8. LLM Models verification
+9. Integration Tests (component interaction)
+10. Performance Tests (startup times, disk I/O)
+
+**Features:**
+- Version display in output and logs
+- Conda-specific path checking (not venv)
+- JSON report generation
+- Pass/Warn/Fail/Error status classification
+- Performance benchmarking
+
+### 2.2 Verification Utilities
+
+#### check_version.py
+**Purpose:** Verifies correct method names in install_manager.py  
+**Location:** `/AI_Installer/check_version.py`
+
+**Checks for:**
+- Old methods: `mark_step_failed`, `mark_step_completed`, `mark_installation_completed`
+- New methods: `fail_step`, `complete_step`, `complete_installation`
+
+#### check_install_manager.py
+**Purpose:** Verifies install_manager.py features and version  
+**Location:** `/AI_Installer/check_install_manager.py`
+
+**Validates:**
+- Step parameter support
+- Conda manager method calls
+- Windows compatibility features
+- Correct method signatures
+
+## 3. REMOVAL SOFTWARE
+
+### 3.1 Uninstallation System
+
+#### uninstall.bat
+**Purpose:** Complete or selective AI Environment removal  
+**Location:** `/AI_Installer/uninstall.bat`
+
+**Features:**
+- Command line parameters:
+  - `--from-step N` : Remove from step N onwards
+  - `--help` : Show help information
+- Process termination (Ollama, VS Code, Python, Conda)
+- Complete removal mode (entire D:\AI_Environment)
+- Selective removal mode (specific steps only)
+- Enhanced Ollama cleanup including downloads folder
+
+**Operations:**
+1. Stops all AI Environment processes
+2. Removes specified components or entire installation
+3. Cleans temporary files and desktop shortcuts
+4. Updates installation status
+
+#### selective_uninstaller.py
+**Purpose:** Handles selective component removal  
+**Location:** `/AI_Installer/src/selective_uninstaller.py`
+
+**Features:**
+- Step-based removal (removes from specified step onwards)
+- Process stopping before removal
+- Component-specific removal:
+  - Step 8: Finalization components
+  - Step 7: Ollama, models, and downloads
+  - Step 6: Python packages (recreates empty environment)
+  - Step 5: VS Code
+  - Step 4: AI2025 environment
+  - Step 3: Miniconda
+  - Step 2: Directory structure
+- Status tracker reset functionality
+
+## 4. OPERATING SOFTWARE
+
+### 4.1 Environment Activation
+
+#### activate_ai_env.bat
+**Purpose:** Activates and configures the AI environment for use  
+**Location:** `D:\AI_Environment\activate_ai_env.bat`
+
+**Key Features (Latest Version):**
+- Pre-activation cleanup and detection
+- Automatic deactivation of existing environments
+- Ollama server management (stop existing, start new)
+- PATH priority management (D: drive Python first)
+- Flask auto-installation if missing
+- Terminal color management (green during session, restore on exit)
+- ASCII characters only (no Unicode display issues)
+- Process verification and status reporting
+
+**Operations:**
+1. Detects and cleans existing environment
+2. Initializes conda for current session
+3. Activates AI2025 environment
+4. Sets D: drive paths as priority in PATH
+5. Verifies Python from correct location
+6. Installs Flask if missing
+7. Starts Ollama server in background
+8. Provides management commands
+
+**Available Commands:**
+- `conda list` - Show installed packages
+- `jupyter lab` - Start Jupyter Lab
+- `code .` - Open VS Code
+- `ollama serve` - Start Ollama server
+- `ollama list` - Show available models
+- `exit` - Deactivate and restore terminal
+
+### 4.2 Status Management
+
+#### status_checker.py
+**Purpose:** Shows current installation status  
+**Location:** `/AI_Installer/src/status_checker.py`
+
+**Features:**
+- Reads `installation_status.json`
+- Displays step-by-step installation progress
+- Component existence verification
+- Recommended next actions
+- Visual status indicators
+
+#### status_updater.py
+**Purpose:** Detects and updates installation state  
+**Location:** `/AI_Installer/src/status_updater.py`
+
+**Features:**
+- Automatic detection of installed components
+- Status file creation/update
+- Step completion detection
+- Interactive menu for status operations
+- Force update capability
+
+## 5. CONFIGURATION
+
+### 5.1 Installation Configuration
+
+#### install_config.json
+**Purpose:** Defines installation parameters and requirements  
+**Location:** `/AI_Installer/config/install_config.json`
+
+**Configuration Structure:**
+```json
+{
+  "python_version": "3.10.11",
+  "vscode_version": "latest",
+  "ollama_models": [
+    "llama2:7b",
+    "codellama:7b",
+    "mistral:7b",
+    "phi:2.7b",
+    "gpt-oss:20b"
+  ],
+  "python_packages": [33 AI/ML packages],
+  "system_requirements": {
+    "min_disk_space_gb": 60,
+    "recommended_disk_space_gb": 120,
+    "min_ram_gb": 16,
+    "recommended_ram_gb": 32
+  }
+}
+```
+
+## 6. PROJECT STRUCTURE
+
+```
+AI_Installer/
+├── src/
+│   ├── install_manager.py (v1.3)
+│   ├── conda_installer.py
+│   ├── conda_manager.py
+│   ├── vscode_installer.py
+│   ├── ollama_installer.py
+│   ├── packages_installer.py
+│   ├── environment_setup.py
+│   ├── download_manager.py
+│   ├── step_tracker.py
+│   ├── selective_uninstaller.py
+│   ├── status_checker.py
+│   └── status_updater.py
+├── validator/
+│   └── system_validator.py (v2.1.0)
+├── config/
+│   └── install_config.json
+├── downloads/ (created during installation)
+├── logs/ (created during installation)
+├── install.bat
+├── uninstall.bat
+├── validate.bat
+├── check_version.py
+└── check_install_manager.py
+```
+
+## 7. KEY IMPROVEMENTS AND FIXES
+
+### Latest Updates (as of line 3000+):
+1. **Conda-based installation** replacing virtual environment approach
+2. **Step parameter support** for resumable installation
+3. **Method signature fixes** (fail_step, complete_step, complete_installation)
+4. **Windows compatibility** (shutil.disk_usage instead of os.statvfs)
+5. **Ollama download path** corrected to D: drive
+6. **Package installation** with pip-only list for problematic packages
+7. **Validation script** updated for conda environment (v2.1.0)
+8. **Activation script** with pre-cleanup, PATH priority, and Flask auto-install
+9. **Unicode removal** from batch files for Windows compatibility
+10. **GPT-OSS-20B model** added to configuration
+
+### Critical Fixes Applied:
+- StepTracker missing keys handled with validation
+- Installation status file structure consistency
+- Process isolation for validation to prevent exit code conflicts
+- Conda TOS acceptance automation
+- VS Code extension installation without GUI
+- Model download encoding fixes for Windows
+- PATH management for true portability

@@ -1,0 +1,163 @@
+{
+  "architecture": "MasterInstall System Architecture",
+  "version": "3.0.28",
+
+  "system_overview": {
+    "purpose": "Unified installer for AI_Environment (runtime) and AI_Lab (source code)",
+    "components": 2,
+    "repositories": {
+      "ai_lab": "https://github.com/rmisegal/AILab.git",
+      "ai_environment": "Installed via install_manager.py from local installer"
+    }
+  },
+
+  "file_structure": {
+    "entry_points": {
+      "MasterInstall.bat": "Main installation entry point",
+      "MasterUninstall.bat": "Main uninstallation entry point (pending)"
+    },
+    "core_modules": {
+      "src/master_installer.py": "Orchestrates entire installation process",
+      "src/master_uninstaller.py": "Orchestrates uninstallation (pending)",
+      "src/installation_status_manager.py": "Unified status tracking",
+      "src/ai_lab_installer.py": "GitHub repository cloning"
+    },
+    "existing_modules": {
+      "src/install_manager.py": "AI_Environment installation (needs integration)",
+      "src/drive_selector.py": "Drive selection with USB detection (unchanged)",
+      "src/automated_uninstaller.py": "AI_Environment uninstallation (needs extension)"
+    },
+    "status_file": {
+      "master_installation_status.json": "Unified status tracking for both components"
+    }
+  },
+
+  "installation_flow": {
+    "phase_1_drive_selection": {
+      "order": 1,
+      "script": "drive_selector.py",
+      "purpose": "User selects target drive",
+      "outputs": [
+        "Drive letter (e.g., F)",
+        "Drive type (External/Internal)",
+        "AI_Lab path (if found on external drive)"
+      ]
+    },
+    "phase_2_ai_lab": {
+      "order": 2,
+      "script": "ai_lab_installer.py",
+      "purpose": "Clone AI_Lab repository from GitHub",
+      "requires": "Git installed",
+      "actions": [
+        "Check Git availability",
+        "Clone repository",
+        "Verify structure",
+        "Get commit hash",
+        "Update status"
+      ]
+    },
+    "phase_3_ai_environment": {
+      "order": 3,
+      "script": "install_manager.py",
+      "purpose": "Install AI_Environment runtime",
+      "steps": [
+        "1. Python/Miniconda installation",
+        "2. Conda environment setup (AI2025)",
+        "3. Python packages installation",
+        "4. VS Code portable installation",
+        "5. Ollama installation",
+        "6. Projects directory setup",
+        "7. Scripts and launchers creation",
+        "8. Final configuration"
+      ]
+    }
+  },
+
+  "status_states": {
+    "ai_environment_status": [
+      "No Installation",
+      "AI_Environment_Processing_Installation",
+      "AI_Install_Completed",
+      "Uninstall_Processing"
+    ],
+    "ai_lab_status": [
+      "No Installation",
+      "AI_Environment_Processing_Installation",
+      "AI_Install_Completed",
+      "Uninstall_Processing"
+    ],
+    "note": "Status name reused for consistency with existing system"
+  },
+
+  "installation_paths": {
+    "external_drive_mode": {
+      "trigger": "AI_Lab folder found on external drive",
+      "ai_lab_path": "F:\\AI_Lab",
+      "ai_environment_path": "F:\\AI_Lab\\AI_Environment",
+      "install_mode": "student"
+    },
+    "internal_drive_mode": {
+      "trigger": "No AI_Lab folder or internal drive selected",
+      "ai_lab_path": "D:\\AI_Lab",
+      "ai_environment_path": "D:\\AI_Environment",
+      "install_mode": "standalone"
+    }
+  },
+
+  "status_file_structure": {
+    "ai_environment": {
+      "status": "string (status enum)",
+      "install_path": "string (full path)",
+      "last_updated": "string (YYYY-MM-DD HH:MM:SS)",
+      "version": "string (version number)",
+      "last_step_completed": "integer (0-8)"
+    },
+    "ai_lab": {
+      "status": "string (status enum)",
+      "install_path": "string (full path)",
+      "last_updated": "string (YYYY-MM-DD HH:MM:SS)",
+      "git_commit": "string (commit hash)",
+      "repository_url": "string (GitHub URL)"
+    },
+    "installation_context": {
+      "drive_letter": "string (e.g., F)",
+      "drive_type": "string (External/Internal)",
+      "install_mode": "string (student/standalone)"
+    }
+  },
+
+  "menu_options": {
+    "0": "Exit",
+    "1": "Fresh Installation (both components)",
+    "2": "Install AI_Lab only (pending implementation)",
+    "3": "Install AI_Environment only (pending implementation)",
+    "4": "Resume incomplete installation (pending implementation)",
+    "5": "Uninstall (redirects to MasterUninstall.bat)"
+  },
+
+  "dependencies": {
+    "required_system": {
+      "git": "Required for AI_Lab cloning",
+      "python": "Required for running installer (will be replaced with portable)"
+    },
+    "python_packages": {
+      "colorama": "Optional (for colored output)",
+      "used_by": "All Python modules"
+    }
+  },
+
+  "design_principles": {
+    "separation_of_concerns": "AI_Lab (source) separate from AI_Environment (runtime)",
+    "reuse_existing_code": "Leverage tested install.bat logic via install_manager.py",
+    "comprehensive_status": "Always know what's installed, support resume",
+    "user_friendly": "Clear prompts, handles external drives, portable support",
+    "git_integration": "Easy updates via git pull, version tracking"
+  },
+
+  "future_enhancements": {
+    "auto_update": "Check for AI_Lab updates and offer to pull latest",
+    "rollback": "Ability to rollback to previous version",
+    "profile_management": "Support multiple AI_Environment profiles",
+    "remote_installation": "Support installing to network drives"
+  }
+}
